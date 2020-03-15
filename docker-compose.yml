@@ -1,0 +1,43 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres:10.3-alpine
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+  firebase:
+    build: ./Dockerfiles/firebase-tools
+    command: ./entrypoint.sh
+    expose:
+      - "80"
+    volumes:
+      - type: volume
+        source: firebasedata
+        target: /data
+      - type: bind
+        source: ./Config/firebase.json
+        target: /app/firebase.json
+  web:
+    build: ./Dockerfiles/web
+    command: ./entrypoint.sh bundle exec rails server -b 0.0.0.0
+    environment:
+      DATABASE_URL: postgres://postgres@db
+      RAILS_ENV: development
+      RAILS_MAX_THREADS: 1
+    depends_on:
+      - db
+      - firebase
+    ports:
+      - 3000:3000
+    working_dir: /app/rails/web
+    volumes:
+      - type: volume
+        source: railscache
+        target: /bundle
+      - type: bind
+        source: ./
+        target: /app/rails/web
+volumes:
+  railscache:
+  firebasedata:
+  postgresdata:

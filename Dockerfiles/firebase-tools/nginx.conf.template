@@ -1,0 +1,24 @@
+daemon off;
+worker_processes 1;
+
+error_log /dev/stderr;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    client_max_body_size 100M;
+
+    server {
+        listen 80;
+        server_name $server_name;
+
+        location / {
+            proxy_pass http://localhost:$firestore_port;
+            proxy_set_header Authorization "Bearer owner";
+        }
+
+        access_log /dev/stdout;
+    }
+}
